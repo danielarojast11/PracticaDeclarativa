@@ -1,42 +1,67 @@
 
-//Clase Arbol
-trait ArbolHuffman
-
-//Clases Nodo y Rama
-  case class NodoHuffman(caracter: Char, var pesoN: Int) extends ArbolHuffman
-  case class RamaHuffman(nodoIzq: ArbolHuffman, nodoDch: ArbolHuffman) extends ArbolHuffman
 
 //Codigo
-trait CodigoHuffman {
+sealed trait ArbolHuffman {
 
   // Peso del árbol
-  def peso(arbol: ArbolHuffman): Int = arbol match {
+  def peso(arbol: ArbolHuffman): Int = arbol match
     case NodoHuffman(caracter, pesoN) => pesoN
     case RamaHuffman(nodoIzq, nodoDch) => peso(nodoIzq) + peso(nodoDch)
-    case _ => throw new NoSuchElementException()
-  }
+    case null => throw new NoSuchElementException()
+
   //Lista de Caracteres
   def caracteres(arbol: ArbolHuffman): List[Char] =
     def caracteresAux(arbolAux: ArbolHuffman, lista: List[Char]): List[Char] = arbolAux match
       case NodoHuffman (caracter, pesoN) => caracter::lista
       case RamaHuffman (nodoIzq, nodoDch) => caracteresAux(nodoIzq,lista):::caracteresAux(nodoDch, lista)
-      case _ => throw new NoSuchElementException()
+      case null => throw new NoSuchElementException()
     caracteresAux(arbol,Nil)
+
+  def cadenaAListaCaracteres (cadena: String): List[Char] = cadena match
+    case m => cadena.toList
+    case null => throw new NoSuchElementException()
+
+  def listaCharsACadena(listaCar: List[Char]): String = listaCar match
+    case m => listaCar.mkString
+    case null => throw new NoSuchElementException()
+
+  type Bit = 1 | 0
+
+  def decodificar (lista: List[Bit]): String =
+    def decodificarAux(arbol: ArbolHuffman, listaAux: List[Bit], lChar: List[Char]): List[Char] = (arbol, listaAux) match {
+      case (NodoHuffman(caracter, pesoN), _) => decodificarAux(this, listaAux, lChar :+ caracter)
+      case (RamaHuffman(nodoIzq, nodoDch), 0 :: tail) => decodificarAux(nodoIzq, tail, lChar)
+      case (RamaHuffman(nodoIzq, nodoDch), 1 :: tail) => decodificarAux(nodoDch, tail, lChar)
+      case (_, Nil) => lChar
+      case _ => throw new NoSuchElementException()
+    }
+    listaCharsACadena(decodificarAux(this, lista, Nil))
 }
 
-// Crear un objeto del codigo
-object Probar extends CodigoHuffman
+//Clases Nodo y Rama
+case class NodoHuffman(caracter: Char, var pesoN: Int) extends ArbolHuffman
+case class RamaHuffman(nodoIzq: ArbolHuffman, nodoDch: ArbolHuffman) extends ArbolHuffman
+
+type Bit = 1|0
 
 //Crear instancias arbol
 var arbol1: ArbolHuffman = RamaHuffman(NodoHuffman('e',2),NodoHuffman(' ',2))
 var arbol2: ArbolHuffman = RamaHuffman(NodoHuffman('o',3), arbol1)
 var arbol: ArbolHuffman = RamaHuffman(NodoHuffman('s',4), arbol2)
 
-
 // Calcular el peso del árbol
-val suma = Probar.peso(arbol)
+val suma = arbol.peso(arbol)
 println("El peso del arbol es: " + suma)
 
 //Calcular la lista de caracteres
-val lista = Probar.caracteres(arbol)
+val lista = arbol.caracteres(arbol)
 println("La lista de caracteres del arbol, de mayor  amenor frecuencia, es: "+lista)
+
+//Crear cadena y lista
+var cadena: String = "Hola Ines"
+val listaCar = arbol.cadenaAListaCaracteres(cadena)
+val cadenaCar = arbol.listaCharsACadena(listaCar)
+
+//Decodificar
+var listaBits: List[Bit] = List(0,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,1,1,0,0,1,0)
+val listDecod = arbol.decodificar(listaBits)

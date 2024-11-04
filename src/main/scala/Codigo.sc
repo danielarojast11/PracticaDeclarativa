@@ -16,11 +16,13 @@ sealed trait ArbolHuffman {
       case RamaHuffman (nodoIzq, nodoDch) => caracteresAux(nodoIzq,lista):::caracteresAux(nodoDch, lista)
       case null => throw new NoSuchElementException()
     caracteresAux(arbol,Nil)
-
+  
+  //Cadena a Lista de Caracteres
   def cadenaAListaCaracteres (cadena: String): List[Char] = cadena match
     case m => cadena.toList
     case null => throw new NoSuchElementException()
 
+  //Lista de Caracteres a Cadena
   def listaCharsACadena(listaCar: List[Char]): String = listaCar match
     case m => listaCar.mkString
     case null => throw new NoSuchElementException()

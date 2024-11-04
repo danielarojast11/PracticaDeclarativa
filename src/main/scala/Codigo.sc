@@ -36,6 +36,25 @@ sealed trait ArbolHuffman {
       case _ => throw new NoSuchElementException()
     }
     listaCharsACadena(decodificarAux(this, lista, Nil))
+
+  def codificar (cadena: String): List[Bit]=
+    def evaluarNodo (arbolN: ArbolHuffman, cN: Char): Boolean = arbolN match
+      case NodoHuffman(caracter, pesoN) => caracter==cN
+      case _ => false
+    def recorrerArbol(cR:Char, listaBR: List[Bit], arbolR: ArbolHuffman): List[Bit] = arbolR match
+      case NodoHuffman(caracter,pesoN) =>
+        if caracter==cR then listaBR
+        else throw new NoSuchElementException("No existe el caracter")
+      case RamaHuffman(nodoIzq,nodoDch) =>
+        if evaluarNodo(nodoIzq,cR) then 0::listaBR
+        else recorrerArbol(cR, 1::listaBR, nodoDch)
+      case null => throw new NoSuchElementException("Error inesperado")
+    def codifAux (caracteres: List[Char], arbolC: ArbolHuffman): List[Bit] = caracteres match
+      case Nil=>Nil
+      case h::t => codifAux(t,arbolC)++recorrerArbol(h, Nil, this)
+      case null => throw new NoSuchElementException("Error inesperado")
+
+    codifAux(cadenaAListaCaracteres(cadena),this).reverse
 }
 
 //Clases Nodo y Rama
@@ -65,3 +84,7 @@ val cadenaCar = arbol.listaCharsACadena(listaCar)
 //Decodificar
 var listaBits: List[Bit] = List(0,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,1,1,0,0,1,0)
 val listDecod = arbol.decodificar(listaBits)
+
+var cadenaCodif: String = "sos ese oso"
+val listaCodif = arbol.codificar(cadenaCodif)
+

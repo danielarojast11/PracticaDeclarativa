@@ -113,6 +113,47 @@ trait App {
   def codificarApp (arbol: ArbolHuffman,cadena:String):List[Bit] = {
     arbol.codificar(cadena)
   }
+
+  def crearArbolHuffman(cadena: String): ArbolHuffman = {
+
+    // Convierte la lista de caracteres en distribución de frecuencias.
+    def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
+      def listaFrecsAux(listaChar: List[Char], listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
+        listaChar match
+          case Nil => listaFrecs.reverse
+          case h :: tail =>
+            if estaenListaFrec(h, listaFrecs) then listaFrecsAux(tail, actualizarFrec(h, listaFrecs))
+            else listaFrecsAux(tail, (h, 1) :: listaFrecs)
+
+          case _ => throw new NoSuchElementException("Error ines")
+      }
+
+      def estaenListaFrec(c: Char, listaFrecs: List[(Char, Int)]): Boolean = {
+        listaFrecs match
+          case Nil => false
+          case (cr, _) :: tail =>
+            if cr == c then true
+            else estaenListaFrec(c, tail)
+          case _ => throw new NoSuchElementException("Error inesperado")
+      }
+
+      def actualizarFrec(c: Char, listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
+        listaFrecs match
+          case (cr, frec) :: tail =>
+            if cr == c then (cr, frec + 1) :: tail
+            else (cr, frec) :: actualizarFrec(c, tail)
+          case Nil => throw new NoSuchElementException("El nodo no se encuentra en la lista de frecuencias para actualizar")
+          case _ => throw new NoSuchElementException
+      }
+      listaFrecsAux(listaChar, Nil)
+    }
+
+    // Convierte la distribución en una lista de hojas ordenada
+    def DistribFrecAListaHojas(frec: [(Char, Int)] ): List[HojaHuff] =
+      jj
+
+
+  }
 }
 
 // Objeto miPrograma para probar programa
@@ -141,6 +182,9 @@ object miPrograma extends App {
   //Codificar
   val cadenaCod: String = "sos ese oso"
   val resultadoCod: List[Bit] = miPrograma.codificarApp(arbol, cadenaCod)
+
+
+
 }
 
 println("El peso del arbol es: " + miPrograma.resultadoPeso)

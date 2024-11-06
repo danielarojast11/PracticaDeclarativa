@@ -11,16 +11,16 @@ trait App {
   abstract class ArbolHuffman {
 
     def peso(arbol: ArbolHuffman): Int = arbol match {
-      case HojaHuff(_, pesoN) => pesoN
-      case RamaHuff(nodoIzq, nodoDch) => peso(nodoIzq) + peso(nodoDch)
+      case NodoHuffman(_, pesoN) => pesoN
+      case RamaHuffman(nodoIzq, nodoDch) => peso(nodoIzq) + peso(nodoDch)
       case null => throw new NoSuchElementException("El árbol no puede ser nulo.")
     }
 
     //Lista de Caracteres
     def caracteres(arbol: ArbolHuffman): List[Char] = {
       def caracteresAux(arbolAux: ArbolHuffman, lista: List[Char]): List[Char] = arbolAux match
-        case HojaHuff(caracter, pesoN) => caracter :: lista
-        case RamaHuff(nodoIzq, nodoDch) => caracteresAux(nodoIzq, lista) ::: caracteresAux(nodoDch, lista)
+        case NodoHuffman(caracter, pesoN) => caracter :: lista
+        case RamaHuffman(nodoIzq, nodoDch) => caracteresAux(nodoIzq, lista) ::: caracteresAux(nodoDch, lista)
         case null => throw new NoSuchElementException()
 
       caracteresAux(arbol, Nil)
@@ -41,9 +41,9 @@ trait App {
     def decodificar(lista: List[Bit]): String = {
       @tailrec
       def decodificarAux(arbol: ArbolHuffman, listaAux: List[Bit], lChar: List[Char]): List[Char] = (arbol, listaAux) match {
-        case (HojaHuff(caracter, pesoN), _) => decodificarAux(this, listaAux, lChar :+ caracter)
-        case (RamaHuff(nodoIzq, nodoDch), 0 :: tail) => decodificarAux(nodoIzq, tail, lChar)
-        case (RamaHuff(nodoIzq, nodoDch), 1 :: tail) => decodificarAux(nodoDch, tail, lChar)
+        case (NodoHuffman(caracter, pesoN), _) => decodificarAux(this, listaAux, lChar :+ caracter)
+        case (RamaHuffman(nodoIzq, nodoDch), 0 :: tail) => decodificarAux(nodoIzq, tail, lChar)
+        case (RamaHuffman(nodoIzq, nodoDch), 1 :: tail) => decodificarAux(nodoDch, tail, lChar)
         case (_, Nil) => lChar
         case _ => throw new NoSuchElementException()
       }
@@ -51,18 +51,19 @@ trait App {
       listaCharsACadena(decodificarAux(this, lista, Nil))
     }
 
-    def codificar(cadena: String): List[Bit] = {
+    /*def codificar(cadena: String): List[Bit] = {
+
       def evaluarNodo(arbolN: ArbolHuffman, cN: Char): Boolean = arbolN match {
-        case HojaHuff(caracter, pesoN) => caracter == cN
+        case NodoHuffman(caracter, pesoN) => caracter == cN
         case _ => false
       }
 
       @tailrec
       def recorrerArbol(cR: Char, listaBR: List[Bit], arbolR: ArbolHuffman): List[Bit] = arbolR match {
-        case HojaHuff(caracter, pesoN) =>
+        case NodoHuffman(caracter, pesoN) =>
           if caracter == cR then listaBR
           else throw new NoSuchElementException("No existe el caracter")
-        case RamaHuff(nodoIzq, nodoDch) =>
+        case RamaHuffman(nodoIzq, nodoDch) =>
           if evaluarNodo(nodoIzq, cR) then 0 :: listaBR
           else recorrerArbol(cR, 1 :: listaBR, nodoDch)
         case null => throw new NoSuchElementException("Error inesperado")
@@ -74,14 +75,46 @@ trait App {
         case null => throw new NoSuchElementException("Error inesperado")
       }
 
-      codifAux(cadenaAListaCaracteres(cadena), this).reverse
-    }
+      codifAux(cadenaAListaCaracteres(cadena), this)
+    }*/
 
+    def codificarBien(cadena: String): List[Bit] = {
+      def buscarCaracter(arbol: ArbolHuffman, caracter: Char): Boolean = {
+        val listaDeCaracteres: List[Char] = caracteres(arbol)
+
+        @tailrec
+        def estaLista(lista: List[Char]): Boolean = lista match {
+          case h :: t =>
+            if h == caracter then true
+            else estaLista(t)
+          case Nil => false
+        }
+
+        estaLista(listaDeCaracteres)
+      }
+
+      @tailrec
+      def codifAux(carac: Char, arbolC: ArbolHuffman, listaAux: List[Bit]): List[Bit] = arbolC match {
+        case NodoHuffman(caracter, pesoN) => listaAux
+        case RamaHuffman(nodoIzq, nodoDch) =>
+          if buscarCaracter(nodoIzq, carac) then codifAux(carac, nodoIzq, 0 :: listaAux)
+          else if buscarCaracter(nodoDch, carac) then codifAux(carac, nodoDch, 1 :: listaAux)
+          else throw new NoSuchElementException("Caracter no encontrado")
+      }
+
+      def unirListas(listaChar: List[Char]): List[Bit] = listaChar match {
+        case h :: t => unirListas(t) ++ codifAux(h, this, Nil)
+        case Nil => Nil
+      }
+
+      unirListas(cadenaAListaCaracteres(cadena)).reverse
+    }
   }
 
   //Clases Nodo y Rama
-  case class HojaHuff(caracter: Char, var pesoN: Int) extends ArbolHuffman
-  case class RamaHuff(nodoIzq: ArbolHuffman, nodoDch: ArbolHuffman) extends ArbolHuffman
+  case class NodoHuffman(caracter: Char, var pesoN: Int) extends ArbolHuffman
+
+  case class RamaHuffman(nodoIzq: ArbolHuffman, nodoDch: ArbolHuffman) extends ArbolHuffman
 
   //Funciones App para llamar a los metodos del Arbol
   // Peso del árbol App
@@ -95,7 +128,7 @@ trait App {
   }
 
   //Cadena a Lista de Caracteres App
-  def cadenaAListaCaracteresApp(arbol:ArbolHuffman, cadena: String): List[Char] = {
+  def cadenaAListaCaracteresApp(arbol: ArbolHuffman, cadena: String): List[Char] = {
     arbol.cadenaAListaCaracteres(cadena)
   }
 
@@ -105,17 +138,20 @@ trait App {
   }
 
   //Decodificar App
-  def decodificarApp(arbol: ArbolHuffman, lista: List[Bit]):String = {
+  def decodificarApp(arbol: ArbolHuffman, lista: List[Bit]): String = {
     arbol.decodificar(lista)
   }
 
   //Codificar App
-  def codificarApp (arbol: ArbolHuffman,cadena:String):List[Bit] = {
+  /*def codificarApp (arbol: ArbolHuffman,cadena:String):List[Bit] = {
     arbol.codificar(cadena)
+  }*/
+
+  def codificarBienApp(arbol: ArbolHuffman, cadena: String): List[Bit] = {
+    arbol.codificarBien(cadena)
   }
 
-
-    // Convierte la lista de caracteres en distribución de frecuencias.
+  // Convierte la lista de caracteres en distribución de frecuencias.
   def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
     def listaFrecsAux(listaChar: List[Char], listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
       listaChar match
@@ -144,7 +180,7 @@ trait App {
     listaFrecsAux(listaChar, Nil)
   }
    // Convierte la distribución en una lista de hojas ordenada
-  def DistribFrecAListaHojas (frec: List[(Char, Int)]): List[HojaHuff] = {
+  def DistribFrecAListaHojas (frec: List[(Char, Int)]): List[NodoHuffman] = {
     def insertarOrdenada(tupla: (Char, Int), listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
       listaOrdenada match
         case Nil => List(tupla)
@@ -154,50 +190,49 @@ trait App {
           else (charOrd, frecOrd) :: insertarOrdenada(tupla, tail)
     }
 
-    def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
+  def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
       frec match
         case Nil => listaOrdenada
         case h :: tail => ordenarListaTuplas(tail, insertarOrdenada(h, listaOrdenada))
-    }
-
-    val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
-
-    frecsOrdenadas.map((charac, peso) => HojaHuff(charac, peso))
   }
 
+  val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
 
-
+  frecsOrdenadas.map((charac, peso) => NodoHuffman(charac, peso))
+  }
 }
 
 // Objeto miPrograma para probar programa
 object miPrograma extends App {
 
   // Crear árbol a mano
-  val arbol1: ArbolHuffman = RamaHuff(HojaHuff('e', 2), HojaHuff(' ', 2))
-  val arbol2: ArbolHuffman = RamaHuff(HojaHuff('o', 3), arbol1)
-  val arbol: ArbolHuffman = RamaHuff(HojaHuff('s', 4), arbol2)
+  val arbol1: ArbolHuffman = RamaHuffman(NodoHuffman('e', 2), NodoHuffman(' ', 2))
+  val arbol2: ArbolHuffman = RamaHuffman(NodoHuffman('o', 3), arbol1)
+  val arbol: ArbolHuffman = RamaHuffman(NodoHuffman('s', 4), arbol2)
 
   // Calcular el peso del árbol
-  val resultadoPeso = miPrograma.pesoApp(arbol)
+  val resultadoPeso = pesoApp(arbol)
 
   //Calcular la lista de Caracteres
-  val resultadoCaracteres = miPrograma.caracteresApp(arbol)
+  val resultadoCaracteres = caracteresApp(arbol)
 
   //Crear cadena y lista
   val cadena: String = "sos ese oso"
-  val resultadoListaChar: List[Char] = miPrograma.cadenaAListaCaracteresApp(arbol, cadena)
-  val resultadoCadena: String = miPrograma.listaCharsACadenaApp(arbol,resultadoListaChar)
+  val resultadoListaChar: List[Char] = cadenaAListaCaracteresApp(arbol, cadena)
+  val resultadoCadena: String = listaCharsACadenaApp(arbol,resultadoListaChar)
 
   //Decodificar
   val listaBits: List[Bit] = List(0,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,1,1,0,0,1,0)
-  val resultadoDecod: String = miPrograma.decodificarApp(arbol,listaBits)
+  val resultadoDecod: String = decodificarApp(arbol,listaBits)
 
   //Codificar
   val cadenaCod: String = "sos ese oso"
-  val resultadoCod: List[Bit] = miPrograma.codificarApp(arbol, cadenaCod)
+  val cadenaCodBien:String = "sos ese oso"
+  //val resultadoCod: List[Bit] = miPrograma.codificarApp(arbol, cadenaCod)
+  val resultadoCodBien: List[Bit] = codificarBienApp(arbol,cadenaCodBien)
+  val comprobar: String = decodificarApp(arbol,codificarBienApp(arbol,cadenaCodBien))
 
   val listaFrecuencias = ListaCharsADistFrec(resultadoListaChar)
-  
   val listaHojas = DistribFrecAListaHojas(listaFrecuencias)
 
 }
@@ -207,7 +242,8 @@ println("Los caracteres del arbol son: "+miPrograma.resultadoCaracteres)
 println(s"La cadena '${miPrograma.cadena}' en caracteres es: "+miPrograma.resultadoListaChar)
 println(s"La lista de caracteres '${miPrograma.resultadoListaChar}' en cadena es: "+miPrograma.resultadoCadena)
 println(miPrograma.resultadoDecod)
-println(miPrograma.resultadoCod)
-
+//println(miPrograma.resultadoCod)
+println(miPrograma.resultadoCodBien)
+println(miPrograma.comprobar)
 println("La lista de frecuencias es: " + miPrograma.listaFrecuencias)
 println("La lista de hojas ordenadas es: " + miPrograma.listaHojas)

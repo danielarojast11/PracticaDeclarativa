@@ -153,6 +153,7 @@ trait App {
 
   // Convierte la lista de caracteres en distribución de frecuencias.
   def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
+    @tailrec
     def listaFrecsAux(listaChar: List[Char], listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
       listaChar match
         case Nil => listaFrecs.reverse
@@ -161,6 +162,7 @@ trait App {
           else listaFrecsAux(tail, (h, 1) :: listaFrecs)
         case null => throw new NoSuchElementException("Error inesperado")
     }
+    @tailrec
     def estaenListaFrec(c: Char, listaFrecs: List[(Char, Int)]): Boolean = {
       listaFrecs match
         case Nil => false
@@ -190,15 +192,16 @@ trait App {
           else (charOrd, frecOrd) :: insertarOrdenada(tupla, tail)
     }
 
-  def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
+    @tailrec
+    def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
       frec match
         case Nil => listaOrdenada
         case h :: tail => ordenarListaTuplas(tail, insertarOrdenada(h, listaOrdenada))
-  }
+    }
 
-  val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
+    val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
 
-  frecsOrdenadas.map((charac, peso) => NodoHuffman(charac, peso))
+    frecsOrdenadas.map((charac, peso) => NodoHuffman(charac, peso))
   }
 }
 

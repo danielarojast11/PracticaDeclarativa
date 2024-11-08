@@ -151,87 +151,102 @@ trait App {
     arbol.codificarBien(cadena)
   }
 
-  // Convierte la lista de caracteres en distribución de frecuencias.
-  def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
-    @tailrec
-    def listaFrecsAux(listaChar: List[Char], listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
-      listaChar match
-        case Nil => listaFrecs.reverse
-        case h :: tail =>
-          if estaenListaFrec(h, listaFrecs) then listaFrecsAux(tail, actualizarFrec(h, listaFrecs))
-          else listaFrecsAux(tail, (h, 1) :: listaFrecs)
-        case null => throw new NoSuchElementException("Error inesperado")
-    }
-    @tailrec
-    def estaenListaFrec(c: Char, listaFrecs: List[(Char, Int)]): Boolean = {
-      listaFrecs match
-        case Nil => false
-        case (cr, _) :: tail =>
-          if cr == c then true
-          else estaenListaFrec(c, tail)
-        case null => throw new NoSuchElementException("Error inesperado")
-    }
-    def actualizarFrec(c: Char, listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
-      listaFrecs match
-        case (cr, frec) :: tail =>
-          if cr == c then (cr, frec + 1) :: tail
-          else (cr, frec) :: actualizarFrec(c, tail)
-        case Nil => throw new NoSuchElementException("El nodo no se encuentra en la lista de frecuencias para actualizar")
-        case null => throw new NoSuchElementException
-    }
-    listaFrecsAux(listaChar, Nil)
-  }
-   // Convierte la distribución en una lista de hojas ordenada
-  def DistribFrecAListaHojas (frec: List[(Char, Int)]): List[HojaHuff] = {
-    def insertarOrdenada(tupla: (Char, Int), listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
-      listaOrdenada match
-        case Nil => List(tupla)
-        case (charOrd, frecOrd) :: tail =>
-          val (characTupla, frecTupla): (Char, Int) = tupla
-          if frecTupla <= frecOrd then tupla :: listaOrdenada
-          else (charOrd, frecOrd) :: insertarOrdenada(tupla, tail)
+  def crearArbolHuffman (cadena:String): ArbolHuffman = {
+    
+    // Convierte la lista de caracteres en distribución de frecuencias.
+    def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
+      @tailrec
+      def listaFrecsAux(listaChar: List[Char], listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
+        listaChar match
+          case Nil => listaFrecs.reverse
+          case h :: tail =>
+            if estaenListaFrec(h, listaFrecs) then listaFrecsAux(tail, actualizarFrec(h, listaFrecs))
+            else listaFrecsAux(tail, (h, 1) :: listaFrecs)
+          case null => throw new NoSuchElementException("Error inesperado")
+      }
+
+      @tailrec
+      def estaenListaFrec(c: Char, listaFrecs: List[(Char, Int)]): Boolean = {
+        listaFrecs match
+          case Nil => false
+          case (cr, _) :: tail =>
+            if cr == c then true
+            else estaenListaFrec(c, tail)
+          case null => throw new NoSuchElementException("Error inesperado")
+      }
+
+      def actualizarFrec(c: Char, listaFrecs: List[(Char, Int)]): List[(Char, Int)] = {
+        listaFrecs match
+          case (cr, frec) :: tail =>
+            if cr == c then (cr, frec + 1) :: tail
+            else (cr, frec) :: actualizarFrec(c, tail)
+          case Nil => throw new NoSuchElementException("El nodo no se encuentra en la lista de frecuencias para actualizar")
+          case null => throw new NoSuchElementException
+      }
+
+      listaFrecsAux(listaChar, Nil)
     }
 
-    @tailrec
-    def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
-      frec match
-        case Nil => listaOrdenada
-        case h :: tail => ordenarListaTuplas(tail, insertarOrdenada(h, listaOrdenada))
+    // Convierte la distribución en una lista de hojas ordenada
+    def DistribFrecAListaHojas(frec: List[(Char, Int)]): List[HojaHuff] = {
+      def insertarOrdenada(tupla: (Char, Int), listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
+        listaOrdenada match
+          case Nil => List(tupla)
+          case (charOrd, frecOrd) :: tail =>
+            val (characTupla, frecTupla): (Char, Int) = tupla
+            if frecTupla <= frecOrd then tupla :: listaOrdenada
+            else (charOrd, frecOrd) :: insertarOrdenada(tupla, tail)
+      }
+
+      @tailrec
+      def ordenarListaTuplas(frec: List[(Char, Int)], listaOrdenada: List[(Char, Int)]): List[(Char, Int)] = {
+        frec match
+          case Nil => listaOrdenada
+          case h :: tail => ordenarListaTuplas(tail, insertarOrdenada(h, listaOrdenada))
+      }
+
+      val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
+
+      frecsOrdenadas.map((charac, peso) => HojaHuff(charac, peso))
     }
 
-    val frecsOrdenadas = ordenarListaTuplas(frec, Nil)
-
-    frecsOrdenadas.map((charac, peso) => HojaHuff(charac, peso))
-  }
-
-  // Crea un objeto RamaHuff integrando los dos ArbolHuff (izquierdo y
-  // derecho)que se le pasan como parámetros
-  def creaRamaHuff(izq: ArbolHuffman, dch: ArbolHuffman): RamaHuff = {
-    RamaHuff(izq, dch)
-  }
-
-  def combinar(nodos: List[ArbolHuffman]): List[ArbolHuffman] = { nodos match
-    case Nil => throw Error ("Error inesperado")
-    case n1 :: Nil => List(n1)
-    case n1 :: n2 :: resto =>
-      val rama = creaRamaHuff(n1, n2) :: nodos.tail.tail
-      rama.sortWith(_.peso < _.peso)
-  }
-
-  def esListaSingleton(lista: List[ArbolHuffman]): Boolean = {
-    if lista.size == 1 then true
-    else false
-  }
-
-  def repetirHasta(combinar: (List[ArbolHuffman] => List[ArbolHuffman]), esListaSingleton:
-  (List[ArbolHuffman] => Boolean))(listahojas: List[ArbolHuffman]): ArbolHuffman = {
-    def iterar(lista: List[ArbolHuffman]) : ArbolHuffman = {
-      if esListaSingleton(lista) then lista.head
-      else iterar(combinar(lista))
+    // Crea un objeto RamaHuff integrando los dos ArbolHuff (izquierdo y
+    // derecho)que se le pasan como parámetros
+    def creaRamaHuff(izq: ArbolHuffman, dch: ArbolHuffman): RamaHuff = {
+      RamaHuff(izq, dch)
     }
-    iterar(listahojas)
+
+    def combinar(nodos: List[ArbolHuffman]): List[ArbolHuffman] = {
+      nodos match
+        case Nil => throw Error("Error inesperado")
+        case n1 :: Nil => List(n1)
+        case n1 :: n2 :: resto =>
+          val rama = creaRamaHuff(n1, n2) :: nodos.tail.tail
+          rama.sortWith(_.peso < _.peso)
+    }
+
+    def esListaSingleton(lista: List[ArbolHuffman]): Boolean = {
+      if lista.size == 1 then true
+      else false
+    }
+
+    def repetirHasta(combinar: List[ArbolHuffman] => List[ArbolHuffman], esListaSingleton: List[ArbolHuffman] => Boolean)(listahojas: List[ArbolHuffman]): ArbolHuffman = {
+      @tailrec
+      def iterar(lista: List[ArbolHuffman]): ArbolHuffman = {
+        if esListaSingleton(lista) then lista.head
+        else iterar(combinar(lista))
+      }
+
+      iterar(listahojas)
+    }
+    val distFrec = ListaCharsADistFrec(cadena.toList)
+    val distribFrec = DistribFrecAListaHojas(distFrec)
+    repetirHasta(combinar, esListaSingleton)(distribFrec)
   }
 
+  object ArbolHuffman {
+    def apply(cadena: String): ArbolHuffman = crearArbolHuffman(cadena)
+  }
 }
 
 // Objeto miPrograma para probar programa
@@ -258,33 +273,47 @@ object miPrograma extends App {
   val resultadoDecod: String = decodificarApp(arbol,listaBits)
 
   //Codificar
-  val cadenaCod: String = "sos ese oso"
   val cadenaCodBien:String = "sos ese oso"
   //val resultadoCod: List[Bit] = miPrograma.codificarApp(arbol, cadenaCod)
   val resultadoCodBien: List[Bit] = codificarBienApp(arbol,cadenaCodBien)
   val comprobar: String = decodificarApp(arbol,codificarBienApp(arbol,cadenaCodBien))
+  
+  val arbolCurr = crearArbolHuffman("sos ese oso")
+  val peso = pesoApp(arbolCurr)
+  val caracteres = caracteresApp(arbolCurr)
+  val listaChar = cadenaAListaCaracteresApp(arbolCurr,cadena)
+  val cadenaChar = listaCharsACadenaApp(arbolCurr,listaChar)
+  val decod = decodificarApp(arbolCurr,listaBits)
+  val cod = codificarBienApp(arbolCurr,cadenaCodBien)
 
-  val listaFrecuencias = ListaCharsADistFrec(resultadoListaChar)
+  /*val listaFrecuencias = ListaCharsADistFrec(resultadoListaChar)
   val listaHojas = DistribFrecAListaHojas(listaFrecuencias)
   val hoja1 = HojaHuff('o', 3)
   val ramacreada = creaRamaHuff(hoja1, arbol1)
   val resultadopeso2 = pesoApp(ramacreada)
   val listaarboles: List[ArbolHuffman] = List(hoja1, arbol1)
   val combinadohecho = combinar(listaarboles)
-  val resultadocomb = pesoApp(combinadohecho(0))
-
-
+  val resultadocomb = pesoApp(combinadohecho.head)*/
 }
 
+
 println("El peso del arbol es: " + miPrograma.resultadoPeso)
+println("Va el peso bien?:"+miPrograma.peso)
 println("Los caracteres del arbol son: "+miPrograma.resultadoCaracteres)
+println("Van los caracteres bien?:"+miPrograma.caracteres)
 println(s"La cadena '${miPrograma.cadena}' en caracteres es: "+miPrograma.resultadoListaChar)
+println("Va la cadena a lista bien?:"+miPrograma.listaChar)
 println(s"La lista de caracteres '${miPrograma.resultadoListaChar}' en cadena es: "+miPrograma.resultadoCadena)
+println("Va la lista a cadena bien?:"+miPrograma.cadenaChar)
 println(miPrograma.resultadoDecod)
+println("Va decodificar bien?:"+miPrograma.decod)
 //println(miPrograma.resultadoCod)
 println(miPrograma.resultadoCodBien)
+println("Va codificar bien?:"+miPrograma.cod)
 println(miPrograma.comprobar)
-println("La lista de frecuencias es: " + miPrograma.listaFrecuencias)
+
+
+/*println("La lista de frecuencias es: " + miPrograma.listaFrecuencias)
 println("La lista de hojas ordenadas es: " + miPrograma.listaHojas)
 println("El peso de la rama creada es: " + miPrograma.resultadopeso2)
-println("El resultado de combinar dos nodos y ponerlos en orden es: " + miPrograma.resultadocomb)
+println("El resultado de combinar dos nodos y ponerlos en orden es: " + miPrograma.resultadocomb)*/

@@ -85,6 +85,7 @@ case class HojaHuff(caracter: Char, var pesoN: Int) extends ArbolHuffman
 case class RamaHuff(nodoIzq: ArbolHuffman, nodoDch: ArbolHuffman) extends ArbolHuffman
 
 type Bit = 1 | 0
+type TablaCodigos = List[(Char, List[Bit])]
 
 object ArbolHuffman {
   def apply(cadena: String): ArbolHuffman = crearArbolHuffman(cadena)
@@ -182,6 +183,44 @@ object ArbolHuffman {
     val distribFrec = DistribFrecAListaHojas(distFrec)
     repetirHasta(combinar, esListaSingleton)(distribFrec)
   }
+
+  def deArbolATabla(arbol: ArbolHuffman): TablaCodigos = {
+    def recorrerArbol(nodo: ArbolHuffman, codigoActual: List[Bit]): TablaCodigos = {
+      nodo match
+        case HojaHuff(caracter, _) => List((caracter, codigoActual))
+        case RamaHuff(nodoIzq, nodoDch) =>
+          recorrerArbol(nodoIzq, codigoActual :+ 0) ::: recorrerArbol(nodoDch, codigoActual :+ 1)
+    }
+    recorrerArbol(arbol, Nil)
+  }
+
+  def buscarCodigo(tabla: TablaCodigos, caract: Char): List[Bit] = {
+    def buscarAux(resto: TablaCodigos): List[Bit] = {
+      resto match
+        case (caracTabla, codigoTabla) :: tail =>
+          if (caracTabla == caract) codigoTabla
+          else buscarAux(tail)
+        case Nil => throw new NoSuchElementException("El caracter no se encuentra en la tabla")
+    }
+
+    buscarAux(tabla)
+  }
+
+  def buscarCaracter(tabla: TablaCodigos, codigo: List[Bit]): Char = {
+    def buscarAux(resto: TablaCodigos): Char = {
+      resto match
+        case (caracTabla, codigoTabla) :: tail =>
+          if (codigo == codigoTabla) caracTabla
+          else buscarAux(tail)
+        case Nil => throw new NoSuchElementException("El código de bits no se encuentra en la tabla")
+    }
+    buscarAux(tabla)
+  }
+
+  def codificar(tabla: TablaCodigos)(cadena: String): List[Bit] = {
+    cadena.toList.flatMap(caracter => buscarCodigo(tabla, caracter))
+  }
+
 }
 
 //Objeto para realizar las pruebas
@@ -213,4 +252,10 @@ object miPrograma extends App{
 
   val miArbol = ArbolHuffman("sos ese oso")
   println(miArbol.peso)
+
+  val tablaCodificacion = ArbolHuffman.deArbolATabla(miArbol)
+  println("La tabla de codificación es: " + tablaCodificacion)
+
+  val resultadoCod2: List[Bit] = miArbol.codificar(cadenaCod)
+  println("Cadena codificada con miArbol:" + resultadoCod2)
 }

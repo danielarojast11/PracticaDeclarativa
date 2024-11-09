@@ -229,9 +229,8 @@ def buscarCaracter(tabla: TablaCodigos, codigo: List[Bit]): Char = {
   buscarAux(tabla)
 }
 def isCaracterInTabla(tabla: TablaCodigos, codigo: List[Bit]): Boolean = {
-  //@tailrec
-  def buscarAux(resto: TablaCodigos): Boolean = {
-    resto match
+  @tailrec
+  def buscarAux(resto: TablaCodigos): Boolean = resto match{
       case (caracTabla, codigoTabla) :: tail =>
         if codigo == codigoTabla then true
         else buscarAux(tail)
@@ -241,11 +240,11 @@ def isCaracterInTabla(tabla: TablaCodigos, codigo: List[Bit]): Boolean = {
 }
 
 def decodificarCurrificada(tabla: TablaCodigos)(codigo: List[Bit]): String = {
-  def decodAux(tabla: TablaCodigos, codigo: List[Bit], caracteres: List[Char], bitsAux: List[Bit]): String = {
-    codigo match
+  @tailrec
+  def decodAux(tabla: TablaCodigos, codigo: List[Bit], caracteres: List[Char], bitsAux: List[Bit]): String = codigo match {
       case head :: tail =>
         val nuevosBitsAux: List[Bit] = bitsAux :+ head
-        if isCaracterInTabla(tabla, nuevosBitsAux) then decodAux(tabla, codigo, buscarCaracter(tabla, nuevosBitsAux) :: caracteres, Nil)
+        if isCaracterInTabla(tabla, nuevosBitsAux) then decodAux(tabla, tail, buscarCaracter(tabla, nuevosBitsAux) :: caracteres, Nil)
         else decodAux(tabla, tail, caracteres, nuevosBitsAux)
       case Nil =>
         if bitsAux.isEmpty then caracteres.reverse.mkString
@@ -259,9 +258,9 @@ def decodificarCurrificada(tabla: TablaCodigos)(codigo: List[Bit]): String = {
 object miPrograma extends App {
 
   // Crear árbol a mano
-  val arbol1: ArbolHuffman = RamaHuff(HojaHuff('e', 2), HojaHuff(' ', 2))
-  val arbol2: ArbolHuffman = RamaHuff(HojaHuff('o', 3), arbol1)
-  val arbol: ArbolHuffman = RamaHuff(HojaHuff('s', 4), arbol2)
+  private val arbol1: ArbolHuffman = RamaHuff(HojaHuff('e', 2), HojaHuff(' ', 2))
+  private val arbol2: ArbolHuffman = RamaHuff(HojaHuff('o', 3), arbol1)
+  private val arbol: ArbolHuffman = RamaHuff(HojaHuff('s', 4), arbol2)
 
   //PRUEBAS DE METODOS ARBOL A MANO
   println("\n-------PRUEBAS DEL ARBOL A MANO-------")
@@ -274,8 +273,8 @@ object miPrograma extends App {
   println("Lista a cadena de caracteres del arbol a mano: " + arbol.listaCharsACadena(cadenaLista))
 
   //Decodificar
-  val listaBits: List[Bit] = List(0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0)
-  val resultadoDecod: String = arbol.decodificar(listaBits)
+  private val listaBits: List[Bit] = List(0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0)
+  private val resultadoDecod: String = arbol.decodificar(listaBits)
   println("Lista decodificada del arbol a mano: " + resultadoDecod)
 
   //Codificar
@@ -294,13 +293,12 @@ object miPrograma extends App {
   println(s"5. Lista $listaBits decodificada: " + miArbol.decodificar(listaBits))
   println(s"6. Cadena $cadenaCod codificada: " + miArbol.codificar(cadenaCod))
 
-  val tablaCodificacionMiarbol = deArbolATabla(miArbol)
+  private val tablaCodificacionMiarbol = deArbolATabla(miArbol)
   println("La tabla de codificación es: " + tablaCodificacionMiarbol)
 
-  val resultadoCod2: List[Bit] = codificarCurrificada(tablaCodificacionMiarbol)(cadenaCod)
+  private val resultadoCod2: List[Bit] = codificarCurrificada(tablaCodificacionMiarbol)(cadenaCod)
   println("Cadena codificada con miArbol:" + resultadoCod2)
 
-  val resultadoDecod2: String = decodificarCurrificada(tablaCodificacionMiarbol)(listaBits)
+  private val resultadoDecod2: String = decodificarCurrificada(tablaCodificacionMiarbol)(listaBits)
   println("Código de bits decodificado con miArbol:" + resultadoDecod2)
-  println("Hola")
 }

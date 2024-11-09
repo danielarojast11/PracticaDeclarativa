@@ -1,3 +1,5 @@
+import miPrograma.arbol1
+
 import scala.annotation.tailrec
 import scala.collection.immutable.List
 
@@ -253,67 +255,8 @@ trait App {
 object miPrograma extends App {
 
   // Crear árbol a mano
-  val arbol1: ArbolHuffman = RamaHuff(HojaHuff('e', 2), HojaHuff(' ', 2))
-  val arbol2: ArbolHuffman = RamaHuff(HojaHuff('o', 3), arbol1)
-  val arbol: ArbolHuffman = RamaHuff(HojaHuff('s', 4), arbol2)
-
-  // Calcular el peso del árbol
-  val resultadoPeso = pesoApp(arbol)
-
-  //Calcular la lista de Caracteres
-  val resultadoCaracteres = caracteresApp(arbol)
-
-  //Crear cadena y lista
-  val cadena: String = "sos ese oso"
-  val resultadoListaChar: List[Char] = cadenaAListaCaracteresApp(arbol, cadena)
-  val resultadoCadena: String = listaCharsACadenaApp(arbol,resultadoListaChar)
-
-  //Decodificar
-  val listaBits: List[Bit] = List(0,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,1,1,0,0,1,0)
-  val resultadoDecod: String = decodificarApp(arbol,listaBits)
-
-  //Codificar
-  val cadenaCodBien:String = "sos ese oso"
-  //val resultadoCod: List[Bit] = miPrograma.codificarApp(arbol, cadenaCod)
-  val resultadoCodBien: List[Bit] = codificarBienApp(arbol,cadenaCodBien)
-  val comprobar: String = decodificarApp(arbol,codificarBienApp(arbol,cadenaCodBien))
+  val arbol1: ArbolHuffman = RamaHuff(null, null)
   
-  val arbolCurr = crearArbolHuffman("sos ese oso")
-  val peso = pesoApp(arbolCurr)
-  val caracteres = caracteresApp(arbolCurr)
-  val listaChar = cadenaAListaCaracteresApp(arbolCurr,cadena)
-  val cadenaChar = listaCharsACadenaApp(arbolCurr,listaChar)
-  val decod = decodificarApp(arbolCurr,listaBits)
-  val cod = codificarBienApp(arbolCurr,cadenaCodBien)
-
-  /*val listaFrecuencias = ListaCharsADistFrec(resultadoListaChar)
-  val listaHojas = DistribFrecAListaHojas(listaFrecuencias)
-  val hoja1 = HojaHuff('o', 3)
-  val ramacreada = creaRamaHuff(hoja1, arbol1)
-  val resultadopeso2 = pesoApp(ramacreada)
-  val listaarboles: List[ArbolHuffman] = List(hoja1, arbol1)
-  val combinadohecho = combinar(listaarboles)
-  val resultadocomb = pesoApp(combinadohecho.head)*/
 }
 
-
-println("El peso del arbol es: " + miPrograma.resultadoPeso)
-println("Va el peso bien?:"+miPrograma.peso)
-println("Los caracteres del arbol son: "+miPrograma.resultadoCaracteres)
-println("Van los caracteres bien?:"+miPrograma.caracteres)
-println(s"La cadena '${miPrograma.cadena}' en caracteres es: "+miPrograma.resultadoListaChar)
-println("Va la cadena a lista bien?:"+miPrograma.listaChar)
-println(s"La lista de caracteres '${miPrograma.resultadoListaChar}' en cadena es: "+miPrograma.resultadoCadena)
-println("Va la lista a cadena bien?:"+miPrograma.cadenaChar)
-println(miPrograma.resultadoDecod)
-println("Va decodificar bien?:"+miPrograma.decod)
-//println(miPrograma.resultadoCod)
-println(miPrograma.resultadoCodBien)
-println("Va codificar bien?:"+miPrograma.cod)
-println(miPrograma.comprobar)
-
-
-/*println("La lista de frecuencias es: " + miPrograma.listaFrecuencias)
-println("La lista de hojas ordenadas es: " + miPrograma.listaHojas)
-println("El peso de la rama creada es: " + miPrograma.resultadopeso2)
-println("El resultado de combinar dos nodos y ponerlos en orden es: " + miPrograma.resultadocomb)*/
+println(miPrograma.arbol1.peso)

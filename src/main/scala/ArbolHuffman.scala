@@ -211,6 +211,12 @@ def buscarCodigo(tabla: TablaCodigos, caract: Char): List[Bit] = {
   buscarAux(tabla)
 }
 
+
+
+def codificarCurrificada(tabla: TablaCodigos)(cadena: String): List[Bit] = {
+  cadena.toList.flatMap(caracter => buscarCodigo(tabla, caracter))
+}
+
 def buscarCaracter(tabla: TablaCodigos, codigo: List[Bit]): Char = {
   @tailrec
   def buscarAux(resto: TablaCodigos): Char = {
@@ -222,9 +228,31 @@ def buscarCaracter(tabla: TablaCodigos, codigo: List[Bit]): Char = {
   }
   buscarAux(tabla)
 }
+def isCaracterInTabla(tabla: TablaCodigos, codigo: List[Bit]): Boolean = {
+  //@tailrec
+  def buscarAux(resto: TablaCodigos): Boolean = {
+    resto match
+      case (caracTabla, codigoTabla) :: tail =>
+        if codigo == codigoTabla then true
+        else buscarAux(tail)
+      case Nil => false
+  }
+  buscarAux(tabla)
+}
 
-def codificar(tabla: TablaCodigos)(cadena: String): List[Bit] = {
-  cadena.toList.flatMap(caracter => buscarCodigo(tabla, caracter))
+def decodificarCurrificada(tabla: TablaCodigos)(codigo: List[Bit]): String = {
+  def decodAux(tabla: TablaCodigos, codigo: List[Bit], caracteres: List[Char], bitsAux: List[Bit]): String = {
+    codigo match
+      case head :: tail =>
+        val nuevosBitsAux: List[Bit] = bitsAux :+ head
+        if isCaracterInTabla(tabla, nuevosBitsAux) then decodAux(tabla, codigo, buscarCaracter(tabla, nuevosBitsAux) :: caracteres, Nil)
+        else decodAux(tabla, tail, caracteres, nuevosBitsAux)
+      case Nil =>
+        if bitsAux.isEmpty then caracteres.reverse.mkString
+        else throw Error("No corresponde a una cadena de caracteres")
+
+  }
+  decodAux(tabla, codigo, Nil, Nil)
 }
 
 //Objeto para realizar las pruebas
@@ -266,9 +294,13 @@ object miPrograma extends App {
   println(s"5. Lista $listaBits decodificada: " + miArbol.decodificar(listaBits))
   println(s"6. Cadena $cadenaCod codificada: " + miArbol.codificar(cadenaCod))
 
-  val tablaCodificacion = deArbolATabla(miArbol)
-  println("La tabla de codificación es: " + tablaCodificacion)
+  val tablaCodificacionMiarbol = deArbolATabla(miArbol)
+  println("La tabla de codificación es: " + tablaCodificacionMiarbol)
 
-  val resultadoCod2: List[Bit] = miArbol.codificar(cadenaCod)
+  val resultadoCod2: List[Bit] = codificarCurrificada(tablaCodificacionMiarbol)(cadenaCod)
   println("Cadena codificada con miArbol:" + resultadoCod2)
+
+  val resultadoDecod2: String = decodificarCurrificada(tablaCodificacionMiarbol)(listaBits)
+  println("Código de bits decodificado con miArbol:" + resultadoDecod2)
+  println("Hola")
 }

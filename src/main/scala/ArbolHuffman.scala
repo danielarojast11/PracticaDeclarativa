@@ -301,4 +301,10 @@ object miPrograma extends App {
 
   private val resultadoDecod2: String = decodificarCurrificada(tablaCodificacionMiarbol)(listaBits)
   println("Código de bits decodificado con miArbol:" + resultadoDecod2)
+
+  //PRUEBAS DE CASOS INTERESANTES
+  private val listaNoValida:List[Bit] = List (1,1,1,1,1)
+  println("Lista: "+miArbol.decodificar(listaNoValida)) //No imprime nada
+  println("Lista: "+decodificarCurrificada(tablaCodificacionMiarbol)(listaNoValida))  //Lanza excepcion
+  private val arbolNulo = ArbolHuffman("") //Lanza excepcion
 }
